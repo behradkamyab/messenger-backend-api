@@ -17,4 +17,11 @@ router.post(
 //get converstations
 router.get("/", isAuth, converstationController.getAllConverstations);
 
+//delete converstations
+router.delete(
+  "/delete",
+  isAuth,
+  converstationController.deleteAllConverstations
+);
+
 module.exports = router;

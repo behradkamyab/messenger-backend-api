@@ -57,3 +57,29 @@ exports.getAllConverstations = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.deleteAllConverstations = async (req, res, next) => {
+  const userId = req.userId;
+  try {
+    const converstations = await Converstation.find({ members: userId });
+    if (!converstations) {
+      const err = new Error("There is no converstation to delete");
+      err.statusCode = 404;
+      throw err;
+    }
+    const result = await Converstation.deleteMany({});
+    if (result) {
+      res
+        .status(204)
+        .json({
+          success: true,
+          message: "All the converstations has been deleted!",
+        });
+    }
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};

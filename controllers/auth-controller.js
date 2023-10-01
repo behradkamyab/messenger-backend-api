@@ -56,10 +56,10 @@ exports.signup = async (req, res, next) => {
       name: name,
       password: hashedPass,
     });
-    const randomBytes = crypto.randomBytes(2);
-    const randomNumber = parseInt(randomBytes.toString("hex"), 16);
-    const token = randomNumber % 10000;
-    const hashedToken = helper.hashNumber(token);
+
+    const token = crypto.randomInt(1000, 9999).toString();
+    const hashedToken = await bcrypt.hash(token, 10);
+    console.log(hashedToken);
     if (!hashedToken) {
       const err = new Error("something went wrong");
       err.statusCode = 500;
@@ -102,9 +102,12 @@ exports.confirmPhoneNumber = async (req, res, next) => {
       throw err;
     }
 
-    const hashedInput = helper.hashNumber(token);
+    const doMatch = await bcrypt.compare(
+      token,
+      user.confirmation.confirmationCode
+    );
 
-    if (hashedInput != user.confirmation.confirmationCode) {
+    if (!doMatch) {
       const err = new Error("Confirmation code is wrong");
       err.statusCode = 422;
       throw err;
@@ -167,10 +170,8 @@ exports.login = async (req, res, next) => {
       throw err;
     }
     if (user.otp.isEnable === true) {
-      const randomBytes = crypto.randomBytes(2);
-      const randomNumber = parseInt(randomBytes.toString("hex"), 16);
-      const token = randomNumber % 10000;
-      const hashedToken = helper.hashNumber(token);
+      const token = crypto.randomInt(1000, 9999).toString();
+      const hashedToken = await bcrypt.hash(token, 10);
       if (!hashedToken) {
         const err = new Error("something went wrong");
         throw err;
@@ -227,10 +228,12 @@ exports.createResetPassToken = async (req, res, next) => {
       err.statusCode = 422;
       throw err;
     }
-    const randomBytes = crypto.randomBytes(2);
-    const randomNumber = parseInt(randomBytes.toString("hex"), 16);
-    const token = randomNumber % 10000;
-    const hashedToken = helper.hashNumber(token);
+    const token = crypto.randomInt(1000, 9999).toString();
+    const hashedToken = await bcrypt.hash(token, 10);
+    if (!hashedToken) {
+      const err = new Error("something went wrong");
+      throw err;
+    }
     user.resetToken = hashedToken;
     user.resetTokenExpiration = Date.now() + 3600000;
     const result = await user.save();
@@ -268,13 +271,11 @@ exports.updatePassword = async (req, res, next) => {
       err.statusCode = 404;
       throw err;
     }
-    const randomBytes = crypto.randomBytes(2);
-    const randomNumber = parseInt(randomBytes.toString("hex"), 16);
-    const inputToken = randomNumber % 10000;
-    const hashedToken = helper.hashNumber(inputToken);
 
-    if (hashedToken != token) {
-      const err = new Error("Your reset token is wrong");
+    const tokenMatch = await bcrypt.compare(token, user.resetToken);
+
+    if (!tokenMatch) {
+      const err = new Error("Reset token is wrong");
       err.statusCode = 422;
       throw err;
     }
@@ -341,10 +342,8 @@ exports.disableOtp = async (req, res, next) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      const err = error.errorHandling(
-        "This phone number hasnt signedup yet!",
-        404
-      );
+      const err = new Error("This phone number hasnt signedup yet!");
+      err.statusCode = 404;
       throw err;
     }
     user.otp.isEnable = false;
@@ -380,13 +379,13 @@ exports.verifyOtp = async (req, res, next) => {
       err.statusCode = 404;
       throw err;
     }
-    const randomBytes = crypto.randomBytes(2);
-    const randomNumber = parseInt(randomBytes.toString("hex"), 16);
-    const inputToken = randomNumber % 10000;
-    const hashedToken = helper.hashNumber(inputToken);
+    const doMatch = await bcrypt.compare(
+      token,
+      user.confirmation.confirmationCode
+    );
 
-    if (hashedToken != token) {
-      const err = new Error("Your reset token is wrong");
+    if (!doMatch) {
+      const err = new Error("OTP code is wrong");
       err.statusCode = 422;
       throw err;
     }

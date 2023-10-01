@@ -7,6 +7,14 @@ const { isAuth } = require("../middlewares/isAuth");
 const router = express.Router();
 
 //create a conv
-router.post("/create", isAuth, converstationController.create);
+router.post(
+  "/create",
+  [body("receiverId").not().isEmpty().trim()],
+  isAuth,
+  converstationController.create
+);
+
+//get converstations
+router.get("/", isAuth, converstationController.getAllConverstations);
 
 module.exports = router;

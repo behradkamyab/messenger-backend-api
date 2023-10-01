@@ -4,9 +4,7 @@ const Schema = mongoose.Schema;
 
 const converstationSchema = new Schema(
   {
-    members: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    ],
+    members: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

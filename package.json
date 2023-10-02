@@ -4,7 +4,8 @@
   "description": "messenger clone with authentication service and socket io",
   "main": "server.js",
   "scripts": {
-    "test": "nodemon server.js"
+    "test": "nodemon server.js",
+    "start": "node server.js"
   },
   "author": "behradkamyab",
   "license": "ISC",

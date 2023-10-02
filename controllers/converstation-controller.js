@@ -1,6 +1,5 @@
 const Converstation = require("../models/converstation");
-const user = require("../models/user");
-const User = require("../models/user");
+
 const { validationResult } = require("express-validator");
 
 //dar sakht converstation farz bar in shode ast ke minimum participants 2 nafar bashad
@@ -42,14 +41,31 @@ exports.create = async (req, res, next) => {
 };
 
 exports.getAllConverstations = async (req, res, next) => {
+  let receiverMember = [];
   try {
-    const converstations = await Converstation.find({ members: req.userId });
+    let converstations = await Converstation.find({
+      members: req.userId,
+    }).populate("members");
     if (!converstations) {
       const err = new Error("Cannot find converstations");
       err.statusCode = 404;
       throw err;
     }
-    res.status(200).json({ success: true, converstations: converstations });
+
+    console.log(converstations);
+    converstations.forEach((c) => {
+      c.members.forEach((member) => {
+        if (member._id != req.userId) {
+          receiverMember.push(member.name);
+        }
+      });
+    });
+    console.log(receiverMember);
+    res.status(200).json({
+      success: true,
+      converstations: converstations,
+      members: receiverMember,
+    });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -82,27 +98,16 @@ exports.deleteAllConverstations = async (req, res, next) => {
   }
 };
 
-exports.getMessages = async (req, res, next) => {
+exports.deleteOneConverstation = async (req, res, next) => {
   const converstationId = req.params.converstationId;
   try {
-    const converstation = await Converstation.findById(
-      converstationId
-    ).populate("messages");
-    if (!converstation) {
-      const err = new Error("Converstation not founded!");
-      err.statusCode = 404;
-      throw err;
+    const result = await Converstation.findByIdAndDelete(converstationId);
+    if (result) {
+      res.status(200).json({
+        success: true,
+        message: "Selected converstation has been deleted!",
+      });
     }
-
-    const messages = converstation.messages;
-
-    if (!messages) {
-      const err = new Error("No chat history founded!");
-      err.statusCode = 404;
-      throw err;
-    }
-    const contents = messages.map((m) => m.content);
-    res.status(200).json({ success: true, messages: contents });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

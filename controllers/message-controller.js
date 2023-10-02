@@ -54,3 +54,21 @@ exports.sendMessage = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getMessages = async (req, res, next) => {
+  const converstationId = req.params.converstationId;
+  try {
+    const messages = await Message.find({ converstationId: converstationId });
+    if (!messages) {
+      const err = new Error("Cannot find the messages");
+      err.statusCode = 404;
+      throw err;
+    }
+    res.status(200).json({ messages: messages });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};

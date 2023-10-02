@@ -10,5 +10,6 @@ const router = express.Router();
 router.post("/send/:converstationId", isAuth, messageController.sendMessage);
 
 //get messages
+router.get("/:converstationId", isAuth, messageController.getMessages);
 
 module.exports = router;

@@ -24,4 +24,10 @@ router.delete(
   converstationController.deleteAllConverstations
 );
 
+//get converstation messages
+router.get(
+  "/messages/:converstationId",
+  isAuth,
+  converstationController.getMessages
+);
 module.exports = router;

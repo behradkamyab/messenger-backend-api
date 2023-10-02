@@ -69,13 +69,40 @@ exports.deleteAllConverstations = async (req, res, next) => {
     }
     const result = await Converstation.deleteMany({});
     if (result) {
-      res
-        .status(204)
-        .json({
-          success: true,
-          message: "All the converstations has been deleted!",
-        });
+      res.status(204).json({
+        success: true,
+        message: "All the converstations has been deleted!",
+      });
     }
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.getMessages = async (req, res, next) => {
+  const converstationId = req.params.converstationId;
+  try {
+    const converstation = await Converstation.findById(
+      converstationId
+    ).populate("messages");
+    if (!converstation) {
+      const err = new Error("Converstation not founded!");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const messages = converstation.messages;
+
+    if (!messages) {
+      const err = new Error("No chat history founded!");
+      err.statusCode = 404;
+      throw err;
+    }
+    const contents = messages.map((m) => m.content);
+    res.status(200).json({ success: true, messages: contents });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

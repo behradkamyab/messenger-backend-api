@@ -4,9 +4,9 @@ const Message = require("../models/message");
 exports.sendMessage = async (req, res, next) => {
   const converstationId = req.params.converstationId;
   const content = req.body.content;
-  let addToConverstation;
+  let converstation;
   try {
-    const converstation = await Converstation.findById(converstationId);
+    converstation = await Converstation.findById(converstationId);
     if (!converstation) {
       const err = new Error("Converstation not founded!");
       err.statusCode = 404;
@@ -27,7 +27,7 @@ exports.sendMessage = async (req, res, next) => {
       receiver: receiver,
       content: content,
     });
-    console.log(message);
+
     if (!message) {
       const err = new Error("Something went wrong");
       err.statusCode = 500;
@@ -35,17 +35,17 @@ exports.sendMessage = async (req, res, next) => {
     }
     const result = await message.save();
     if (result) {
-      const addToConverstation = converstation.messages.push(result);
-      if (!addToConverstation) {
-        const err = new Error("Something went wrong!");
-        err.statusCode = 500;
-        throw err;
+      converstation.messages.push(result);
+      console.log(converstation);
+
+      const finalResult = await converstation.save();
+      if (finalResult) {
+        res.status(201).json({
+          success: true,
+          message: "Your message has been sent!",
+          messageId: result._id.toString(),
+        });
       }
-      res.status(201).json({
-        success: true,
-        message: "Your message has been sent!",
-        messageId: result._id.toString(),
-      });
     }
   } catch (err) {
     if (!err.statusCode) {

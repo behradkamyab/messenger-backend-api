@@ -1,7 +1,11 @@
+const path = require("path");
+
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 require("dotenv").config();
+const multer = require("multer");
+const { v4: uuidv4 } = require("uuid");
 
 const authRoutes = require("./routes/auth-routes");
 const converstationRoutes = require("./routes/converstation-routes");
@@ -12,7 +16,17 @@ const DB_URL = process.env.DB_URL;
 
 const app = express();
 
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/profile-pics");
+  },
+  filename: (req, file, cb) => {
+    cb(null, uuidv4() + file.originalname);
+  },
+});
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(bodyParser.json());
+app.use(multer({ storage: fileStorage }).single("imageUrl"));
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(

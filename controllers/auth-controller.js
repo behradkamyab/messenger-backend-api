@@ -18,6 +18,7 @@ exports.signup = async (req, res, next) => {
   const password = req.body.password;
   const confirmPass = req.body.confirmPassword;
   const name = req.body.name;
+  let imageUrl;
   const errors = validationResult(req);
   let user;
   try {
@@ -39,6 +40,9 @@ exports.signup = async (req, res, next) => {
       err.statusCode = 422;
       throw err;
     }
+    if (req.file) {
+      imageUrl = req.file.path.replace("\\", "/");
+    }
     user = await User.findOne({ phoneNumber: phoneNumber });
     if (user) {
       const err = new Error("This phone number has already signed up!");
@@ -55,6 +59,7 @@ exports.signup = async (req, res, next) => {
       phoneNumber: phoneNumber,
       name: name,
       password: hashedPass,
+      profilePic: imageUrl,
     });
 
     const token = crypto.randomInt(1000, 9999).toString();
